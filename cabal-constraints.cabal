@@ -1,0 +1,36 @@
+name:                cabal-constraints
+-- The package version.  See the Haskell package versioning policy (PVP) 
+-- for standards guiding when and how versions should be incremented.
+-- http://www.haskell.org/haskellwiki/Package_versioning_policy
+-- PVP summary:      +-+------- breaking API changes
+--                   | | +----- non-breaking API additions
+--                   | | | +--- code changes with no API change
+version:             0.0.0.1
+synopsis:            Display precise list of constraints used in a project build.
+-- A longer description of the package.
+-- description:         
+homepage:            https://github.com/benarmston/cabal-constraints
+license:             MIT
+license-file:        LICENSE
+author:              Ben Armston
+maintainer:          ben.armston@googlemail.com
+-- A copyright notice.
+-- copyright:           
+category:            Development, Distribution
+build-type:          Simple
+cabal-version:       >=1.8
+
+source-repository head
+  type: git
+  location: https://github.com/benarmston/cabal-constraints.git
+
+executable cabal-constraints
+  -- .hs or .lhs file containing the Main module.
+  main-is:             src/CabalConstraints.hs
+  
+  -- Modules included in this executable, other than Main.
+  -- other-modules:       
+  
+  -- Other library packages from which modules are imported.
+  build-depends:       base ==4.6.*
+                     , Cabal >= 1.16 
