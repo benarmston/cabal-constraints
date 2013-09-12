@@ -2,6 +2,7 @@ import Control.Applicative ((<$>))
 import Control.Monad (join)
 import Data.Function (on)
 import Data.List (intercalate, sortBy)
+import Data.Version (showVersion)
 import System.Environment (getArgs, getProgName)
 
 import Distribution.Package (PackageName(PackageName), Dependency(Dependency), pkgVersion)
@@ -9,8 +10,7 @@ import Distribution.Simple.PackageIndex (allPackagesByName)
 import Distribution.InstalledPackageInfo (sourcePackageId)
 import Distribution.Simple.LocalBuildInfo (LocalBuildInfo, configFlags, installedPkgs)
 import Distribution.Simple.Setup (configConstraints)
-import Distribution.Version (Version, isSpecificVersion, versionBranch)
-
+import Distribution.Version (Version, isSpecificVersion)
 
 
 main :: IO ()
@@ -81,4 +81,4 @@ formatConstraint ((PackageName name), versions) =
     name ++ " == " ++ (allVersionConstraints versions)
   where
     allVersionConstraints = intercalate " || "
-                          . map ( intercalate "." . map show . versionBranch )
+                          . map showVersion
