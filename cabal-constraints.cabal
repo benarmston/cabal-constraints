@@ -6,9 +6,8 @@ name:                cabal-constraints
 --                   | | +----- non-breaking API additions
 --                   | | | +--- code changes with no API change
 version:             0.0.0.1
-synopsis:            Display precise list of constraints used in a project build.
--- A longer description of the package.
--- description:         
+synopsis:            Display exact list of constraints used in a project build.
+description:         Display exact list of constraints used in a project build.
 homepage:            https://github.com/benarmston/cabal-constraints
 license:             MIT
 license-file:        LICENSE

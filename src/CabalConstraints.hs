@@ -34,7 +34,7 @@ usage :: IO ()
 usage = do
     progName <- getProgName
     putStrLn $ "Usage: " ++ progName ++ " [--shallow|--deep]"
-    putStrLn   "Show precise dependency constraints for the current cabal project"
+    putStrLn   "Show exact dependency constraints for a cabal project"
     putStrLn   ""
     putStrLn   "  --shallow\t\tInclude only the dependencies specified in the cabal file"
     putStrLn   "  --deep\t\tInclude all dependencies for the current project"
