@@ -22,11 +22,12 @@ main = do
                    []            -> Just deepDeps
                    _             -> Nothing
     case mdeps of
-        Nothing -> usage
+        Nothing   -> usage
         Just deps -> join $  putStrLn
+                          .  formattedConstraints
                           .  deps
                           .  info
-                          <$> readFile "dist/setup-config"
+                         <$> readFile "dist/setup-config"
 
 
 usage :: IO ()
@@ -39,69 +40,44 @@ usage = do
     putStrLn   "  --deep\t\tInclude all dependencies for the current project"
 
 
-deepDeps :: LocalBuildInfo -> String
-deepDeps =  formattedConstraints'
-         .  dependencyConstraints'
-
-
-shallowDeps :: LocalBuildInfo -> String
-shallowDeps =  formattedConstraints
-            .  dependencyConstraints
-
-
 info :: String -> LocalBuildInfo
 info conf = read . unlines . drop 1 . lines $ conf
 
 
-dependencyConstraints :: LocalBuildInfo -> [(PackageName, Version)]
-dependencyConstraints = map format . configConstraints . configFlags
+shallowDeps :: LocalBuildInfo -> [(PackageName, [Version])]
+shallowDeps = sortBy (compare `on` fst)
+            . map format . configConstraints . configFlags
   where
     format dependency@(Dependency name versionRange) =
         let version = case isSpecificVersion versionRange of
                           Just version' -> version'
                           Nothing      -> error $ errorMsg dependency
-        in (name, version)
+        in (name, [version])
     errorMsg dependency =
         "malformed setup-config: " ++
         "dependency is not constrained to a specific version: "
         ++ show dependency
 
 
-
-dependencyConstraints' :: LocalBuildInfo -> [(PackageName, [Version])]
-dependencyConstraints' = map format
-                       . allPackagesByName
-                       . installedPkgs
+deepDeps :: LocalBuildInfo -> [(PackageName, [Version])]
+deepDeps = map format
+         . allPackagesByName
+         . installedPkgs
   where
     format (name, pkgInfos) = (name, map (pkgVersion. sourcePackageId) pkgInfos)
 
 
-formattedConstraints :: [(PackageName, Version)] -> String
+formattedConstraints :: [(PackageName, [Version])] -> String
 formattedConstraints = (prefix ++)
                      . intercalate separator
                      . map formatConstraint
-                     . sortBy (compare `on` fst)
   where
     prefix = "constraints: "
     separator = "\n" ++ (replicate (length prefix - 2) ' ') ++ ", " 
 
 
-formattedConstraints' :: [(PackageName, [Version])] -> String
-formattedConstraints' = (prefix ++)
-                      . intercalate separator
-                      . map formatConstraint'
-  where
-    prefix = "constraints: "
-    separator = "\n" ++ (replicate (length prefix - 2) ' ') ++ ", " 
-
-
-formatConstraint :: (PackageName, Version) -> String
-formatConstraint ((PackageName name), version) =
-    name ++ " == " ++ (intercalate "." $ map show $ versionBranch version)
-
-
-formatConstraint' :: (PackageName, [Version]) -> String
-formatConstraint' ((PackageName name), versions) =
+formatConstraint :: (PackageName, [Version]) -> String
+formatConstraint ((PackageName name), versions) =
     name ++ " == " ++ (allVersionConstraints versions)
   where
     allVersionConstraints = intercalate " || "
