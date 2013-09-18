@@ -1,9 +1,7 @@
-import Control.Applicative ((<$>))
 import Control.Monad (join)
 import Data.Function (on)
 import Data.List (intercalate, sortBy)
 import Data.Version (showVersion)
-import System.Environment (getArgs, getProgName)
 
 import Distribution.Package (PackageName(PackageName), Dependency(Dependency), pkgVersion)
 import Distribution.Simple.PackageIndex (allPackagesByName)
@@ -12,36 +10,53 @@ import Distribution.Simple.LocalBuildInfo (LocalBuildInfo, configFlags, installe
 import Distribution.Simple.Setup (configConstraints)
 import Distribution.Version (Version, isSpecificVersion)
 
+import Options.Applicative
+
+data Args = Args { depth           :: Depth
+                 , setupConfigPath :: String
+                 }
+
+data Depth = Deep | Shallow
+
+
+options :: Parser Args
+options =  Args
+    <$> flag Deep Shallow
+        (  long "shallow"
+        <> help "Only show the dependencies specified in the .cabal file"
+        )
+    <*> argument Just
+        (  value "dist/setup-config"
+        <> metavar "PATH"
+        <> action "file"
+        )
+
 
 main :: IO ()
-main = do
-    args <- getArgs
-    let mdeps = case args of
-                   ["--shallow"] -> Just shallowDeps
-                   ["--deep"]    -> Just deepDeps
-                   []            -> Just deepDeps
-                   _             -> Nothing
-    case mdeps of
-        Nothing   -> usage
-        Just deps -> join $  putStrLn
-                          .  formattedConstraints
-                          .  deps
-                          .  info
-                         <$> readFile "dist/setup-config"
+main = execParser opts >>= printConstraints
+  where
+    opts = info (helper <*> options)
+        ( fullDesc
+        <> progDesc (unlines [ "Show exact dependency constraints for a cabal project, by reading"
+                             , "  the setup-config file located at PATH, defaulting to \"dist/setup-config\"."
+                             ])
+        )
 
 
-usage :: IO ()
-usage = do
-    progName <- getProgName
-    putStrLn $ "Usage: " ++ progName ++ " [--shallow|--deep]"
-    putStrLn   "Show exact dependency constraints for a cabal project"
-    putStrLn   ""
-    putStrLn   "  --shallow\t\tInclude only the dependencies specified in the cabal file"
-    putStrLn   "  --deep\t\tInclude all dependencies for the current project"
+printConstraints :: Args -> IO ()
+printConstraints args = do
+    let deps = case depth args of
+                   Deep    -> deepDeps
+                   Shallow -> shallowDeps
+    join $  putStrLn
+         .  formattedConstraints
+         .  deps
+         .  readInfo
+         <$> readFile (setupConfigPath args)
 
 
-info :: String -> LocalBuildInfo
-info conf = read . unlines . drop 1 . lines $ conf
+readInfo :: String -> LocalBuildInfo
+readInfo conf = read . unlines . drop 1 . lines $ conf
 
 
 shallowDeps :: LocalBuildInfo -> [(PackageName, [Version])]
@@ -51,7 +66,7 @@ shallowDeps = sortBy (compare `on` fst)
     format dependency@(Dependency name versionRange) =
         let version = case isSpecificVersion versionRange of
                           Just version' -> version'
-                          Nothing      -> error $ errorMsg dependency
+                          Nothing       -> error $ errorMsg dependency
         in (name, [version])
     errorMsg dependency =
         "malformed setup-config: " ++
