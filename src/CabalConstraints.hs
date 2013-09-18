@@ -1,4 +1,5 @@
 import Control.Monad (join)
+import Data.Maybe (fromMaybe)
 import Data.Function (on)
 import Data.List (intercalate, sortBy)
 import Data.Version (showVersion)
@@ -64,9 +65,8 @@ shallowDeps = sortBy (compare `on` fst)
             . map format . configConstraints . configFlags
   where
     format dependency@(Dependency name versionRange) =
-        let version = case isSpecificVersion versionRange of
-                          Just version' -> version'
-                          Nothing       -> error $ errorMsg dependency
+        let version = fromMaybe (error $ errorMsg dependency)
+                                (isSpecificVersion versionRange)
         in (name, [version])
     errorMsg dependency =
         "malformed setup-config: " ++
@@ -88,12 +88,12 @@ formattedConstraints = (prefix ++)
                      . map formatConstraint
   where
     prefix = "constraints: "
-    separator = "\n" ++ (replicate (length prefix - 2) ' ') ++ ", " 
+    separator = "\n" ++ replicate (length prefix - 2) ' ' ++ ", " 
 
 
 formatConstraint :: (PackageName, [Version]) -> String
-formatConstraint ((PackageName name), versions) =
-    name ++ " == " ++ (allVersionConstraints versions)
+formatConstraint (PackageName name, versions) =
+    name ++ " == " ++ allVersionConstraints versions
   where
     allVersionConstraints = intercalate " || "
                           . map showVersion
