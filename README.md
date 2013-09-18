@@ -18,7 +18,7 @@ isolated, repeatable builds can be achieved.
 
 ## Using cabal-constraints
 
-`cabal-constraints` should be run from the route directory of a cabalized
+`cabal-constraints` should be run from the root directory of a cabalized
 Haskell project. It will print out all dependencies of the project in a format
 suitable for use in a `cabal-install` config file. For example, running
 `cabal-constraints` against itself produces the following:
