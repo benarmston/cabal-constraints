@@ -19,12 +19,13 @@ isolated, repeatable builds can be achieved.
 ## Using cabal-constraints
 
 `cabal-constraints` should be run from the root directory of a cabalized
-Haskell project. It will print out all dependencies of the project in a format
-suitable for use in a `cabal-install` config file. For example, running
-`cabal-constraints` against itself produces the following:
+Haskell project and given the path to the `setup-config` file to use. It will
+print out all dependencies of the project in a format suitable for use in a
+`cabal-install` config file. For example, running `cabal-constraints` against
+itself produces the following:
 
 ```sh
-$ cabal-constraints
+$ cabal-constraints dist/dist-sandbox-500003c6/setup-config
 constraints: Cabal == 1.19.0
            , array == 0.4.0.1
            , base == 4.6.0.1
@@ -42,6 +43,15 @@ constraints: Cabal == 1.19.0
            , time == 1.4.0.1
            , unix == 2.6.0.1
 ```
+
+A single mandatory argument must be provided which is the path to the
+`setup-config` file to use. The file will be located under the `dist`
+directory. Usually there will be a single `setup-config` file which can be
+found by running `find dist -name setup-config` from the root directory of the
+project.  If your project has more than one such file, it is likely because
+you have built it either with and without sandboxes or with multiple
+sandboxes.  You probably want the most recently modified file which can be
+found with `ls -tr $( find dist -name setup-config ) | tail -n1`.
 
 To use these constraints for reproducible builds, one should make use of the
 new sandbox feature of `cabal-install` 1.18. The constraints can be redirected

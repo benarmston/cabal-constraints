@@ -29,8 +29,7 @@ options =  Args
         <> help "Only show the dependencies specified in the .cabal file"
         )
     <*> argument Just
-        (  value "dist/setup-config"
-        <> metavar "PATH"
+        (  metavar "<PATH TO setup-config>"
         <> action "file"
         )
 
