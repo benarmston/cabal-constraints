@@ -1,10 +1,12 @@
-import Control.Monad (join)
+{-# LANGUAGE CPP #-}
+
 import Data.Maybe (fromMaybe)
 import Data.Function (on)
 import Data.List (intercalate, sortBy)
 import Data.Version (showVersion)
 
 import Distribution.Package (PackageName(PackageName), Dependency(Dependency), pkgVersion)
+import Distribution.Simple.Configure (tryGetConfigStateFile)
 import Distribution.Simple.PackageIndex (allPackagesByName)
 import Distribution.InstalledPackageInfo (sourcePackageId)
 import Distribution.Simple.LocalBuildInfo (LocalBuildInfo, configFlags, installedPkgs)
@@ -49,15 +51,14 @@ printConstraints args = do
     let deps = case depth args of
                    Deep    -> deepDeps
                    Shallow -> shallowDeps
-    join $  putStrLn
-         .  formattedConstraints
-         .  deps
-         .  readInfo
-         <$> readFile (setupConfigPath args)
-
-
-readInfo :: String -> LocalBuildInfo
-readInfo conf = read . unlines . drop 1 . lines $ conf
+    lbi' <- tryGetConfigStateFile (setupConfigPath args)
+    either printError (putStrLn . formattedConstraints . deps) lbi'
+  where
+#if MIN_VERSION_Cabal(1,18,0)
+    printError = putStrLn . fst
+#else
+    printError = putStrLn
+#endif
 
 
 shallowDeps :: LocalBuildInfo -> [(PackageName, [Version])]
