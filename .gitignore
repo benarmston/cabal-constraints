@@ -1,2 +1,4 @@
 dist/
 .hsenv/
+.cabal-sandbox*/
+cabal.sandbox.config
