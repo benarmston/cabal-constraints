@@ -1,5 +1,3 @@
-{-# LANGUAGE CPP #-}
-
 import Data.Maybe (fromMaybe)
 import Data.Function (on)
 import Data.List (intercalate, sortBy)
@@ -53,11 +51,7 @@ printConstraints args = do
     lbi' <- tryGetConfigStateFile (setupConfigPath args)
     either printError (putStrLn . formattedConstraints . deps) lbi'
   where
-#if MIN_VERSION_Cabal(1,18,0)
     printError = putStrLn . fst
-#else
-    printError = putStrLn
-#endif
 
 
 shallowDeps :: LocalBuildInfo -> [(PackageName, [Version])]

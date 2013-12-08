@@ -103,5 +103,5 @@ executable cabal-constraints
   
   -- Other library packages from which modules are imported.
   build-depends:       base ==4.6.*
-                     , Cabal >= 1.16 
+                     , Cabal >= 1.18
                      , optparse-applicative >= 0.5.2.1
